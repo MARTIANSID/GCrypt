@@ -52,7 +52,6 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () async {
           var file = await FilePicker.getFile();
           await drive.upload(file);
-
         },
         child: Icon(Icons.add),
       ),
@@ -82,16 +81,13 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             FutureBuilder(
-              builder: (BuildContext ctx,
-                  AsyncSnapshot<Stream<ga.FileList>> snapshot) {
+              builder: (BuildContext ctx, AsyncSnapshot<Stream<ga.FileList>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return Expanded(
                     child: StreamBuilder(
                       stream: snapshot.data,
-                      builder: (BuildContext ctx,
-                          AsyncSnapshot<ga.FileList> snapchat) {
-                        if (!snapchat.hasData)
-                          return CircularProgressIndicator();
+                      builder: (BuildContext ctx, AsyncSnapshot<ga.FileList> snapchat) {
+                        if (!snapchat.hasData) return Center(child: CircularProgressIndicator());
                         return ListView.builder(
                             itemBuilder: (BuildContext ctx, index) {
                               return Text(snapchat.data.files[index].name);
