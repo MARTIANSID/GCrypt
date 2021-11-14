@@ -45,11 +45,13 @@ class _MyHomePageState extends State<MyHomePage> {
           Directory tempDir = await getApplicationSupportDirectory();
           print("Dir Check -> ${tempDir.path}");
           var file = await FilePicker.getFile();
+          String data = await File(file.path).readAsString();
           var crypt = AesCrypt("SexyBitch@99");
-          var p =
-              crypt.encryptFileSync(file.path, '${tempDir.path}/sample_1.aes');
-          print("check file path $p");
-          await drive.upload(File(p));
+          
+              // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
+         String encrypted=   await  crypt.encryptTextToFile(data, '${tempDir.path}/sample_1.aes');
+          print("check file path $encrypted");
+          // await drive.upload(File(p));
         },
         child: Icon(Icons.add),
       ),
