@@ -1,4 +1,5 @@
 import "dart:io";
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterdrive/googleDrive.dart';
@@ -47,11 +48,21 @@ class _MyHomePageState extends State<MyHomePage> {
           var file = await FilePicker.getFile();
           String data = await File(file.path).readAsString();
           var crypt = AesCrypt("SexyBitch@99");
-          
-              // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
-         String encrypted=   await  crypt.encryptTextToFile(data, '${tempDir.path}/sample_1.aes');
+
+          // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
+          String encrypted = await crypt.encryptTextToFile(
+              data, '${tempDir.path}/sample_67.aes');
+          File encFile = File(encrypted);
+
+          Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
+
+          String s = new String.fromCharCodes(dec);
+          print("choot dec text $s");
+
+          // String encText = await encFile.readAsString();
+          // print("data -> $encText");
           print("check file path $encrypted");
-          // await drive.upload(File(p));
+          await drive.upload(File(encFile.path));
         },
         child: Icon(Icons.add),
       ),
