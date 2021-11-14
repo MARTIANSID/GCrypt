@@ -52,49 +52,28 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           var file = await FilePicker.getFile();
-          var crypt = AesCrypt();
-          var p = crypt.encryptFileSync(file.path);
-          print(p);
+          var crypt = AesCrypt("SexyBitch@99");
+          var p = crypt.encryptFileSync(file.path, '/storage/emulated/0/Download/choot.aes');
+          print("check file path $p");
           // await drive.upload(File(p));
         },
         child: Icon(Icons.add),
       ),
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text("Flutter Drive Demo"),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             FutureBuilder(
-              builder: (BuildContext ctx,
-                  AsyncSnapshot<Stream<ga.FileList>> snapshot) {
+              builder: (BuildContext ctx, AsyncSnapshot<Stream<ga.FileList>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return Expanded(
                     child: StreamBuilder(
                       stream: snapshot.data,
-                      builder: (BuildContext ctx,
-                          AsyncSnapshot<ga.FileList> snapchat) {
-                        if (!snapchat.hasData)
-                          return CircularProgressIndicator();
+                      builder: (BuildContext ctx, AsyncSnapshot<ga.FileList> snapchat) {
+                        if (!snapchat.hasData) return CircularProgressIndicator();
                         return ListView.builder(
                             itemBuilder: (BuildContext ctx, index) {
                               return Text(snapchat.data.files[index].name);
