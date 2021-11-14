@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterdrive/googleDrive.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
+import 'package:aes_crypt/aes_crypt.dart';
 
 void main() => runApp(MyApp());
 
@@ -51,8 +52,10 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           var file = await FilePicker.getFile();
-          await drive.upload(file);
-
+          var crypt = AesCrypt();
+          var p = crypt.encryptFileSync(file.path);
+          print(p);
+          // await drive.upload(File(p));
         },
         child: Icon(Icons.add),
       ),
