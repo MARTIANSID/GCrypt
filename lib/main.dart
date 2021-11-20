@@ -86,7 +86,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           return Center(child: CircularProgressIndicator());
                         return ListView.builder(
                             itemBuilder: (BuildContext ctx, index) {
-                              return Text(snapchat.data.files[index].name);
+                              return GestureDetector(
+                                  onTap: () async {
+                                    String p =
+                                        await drive.downloadGoogleDriveFile(
+                                            snapchat.data.files[index].name,
+                                            snapchat.data.files[index].id);
+                                    print(p + "ggg");
+                                    File file = File(p);
+                                    print(file.exists());
+                                    String data =
+                                        await File(file.path).readAsString();
+                                    print(data);
+                                  },
+                                  child: Text(snapchat.data.files[index].name));
                             },
                             itemCount: snapchat.data.files.length);
                       },
