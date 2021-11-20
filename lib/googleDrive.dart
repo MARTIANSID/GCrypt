@@ -7,6 +7,8 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 const _clientId =
     "413371350735-k4ug5ill9npdgh1lufq2nk6he2a37me5.apps.googleusercontent.com";
@@ -67,6 +69,33 @@ class GoogleDrive {
     //   return value.files;
     // });
   }
+
+
+
+  Future<void> _downloadGoogleDriveFile(String fName, String gdID) async {
+    var client = await getHttpClient();
+    var drive = ga.DriveApi(client);
+    ga.Media file = await drive.files
+        .get(gdID, downloadOptions: ga.DownloadOptions.FullMedia);
+    print(file.stream);
+
+    final directory = await getExternalStorageDirectory();
+    print(directory.path);
+    final saveFile = File('${directory.path}/${new DateTime.now().millisecondsSinceEpoch}$fName');
+    List<int> dataStore = [];
+    file.stream.listen((data) {
+      print("DataReceived: ${data.length}");
+      dataStore.insertAll(dataStore.length, data);
+    }, onDone: () {
+      print("Task Done");
+      saveFile.writeAsBytes(dataStore);
+      print("File saved at ${saveFile.path}");
+    }, onError: (error) {
+      print("Some Error");
+    });
+  }
+
+
 
 
   
