@@ -46,17 +46,20 @@ class _MyHomePageState extends State<MyHomePage> {
           Directory tempDir = await getApplicationSupportDirectory();
           print("Dir Check -> ${tempDir.path}");
           var file = await FilePicker.getFile();
+          String path = file.path;
+          String fileName = path.substring(path.lastIndexOf('/'));
+          print("Choot Name -> $fileName");
+
           String data = await File(file.path).readAsString();
           var crypt = AesCrypt("SexyBitch@99");
 
           // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
-          String encrypted = await crypt.encryptTextToFile(
-              data, '${tempDir.path}/sample_67.aes');
+          String encrypted = await crypt.encryptTextToFile(data, '${tempDir.path}/$fileName.aes');
           File encFile = File(encrypted);
 
           Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
 
-          String s = new String.fromCharCodes(dec);
+          String s = String.fromCharCodes(dec);
           print("choot dec text $s");
 
           // String encText = await encFile.readAsString();
@@ -74,32 +77,27 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             FutureBuilder(
-              builder: (BuildContext ctx,
-                  AsyncSnapshot<Stream<ga.FileList>> snapshot) {
+              builder: (BuildContext ctx, AsyncSnapshot<Stream<ga.FileList>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return Expanded(
                     child: StreamBuilder(
                       stream: snapshot.data,
-                      builder: (BuildContext ctx,
-                          AsyncSnapshot<ga.FileList> snapchat) {
-                        if (!snapchat.hasData)
-                          return Center(child: CircularProgressIndicator());
+                      builder: (BuildContext ctx, AsyncSnapshot<ga.FileList> snapchat) {
+                        if (!snapchat.hasData) return Center(child: CircularProgressIndicator());
                         return ListView.builder(
                             itemBuilder: (BuildContext ctx, index) {
                               return GestureDetector(
                                   onTap: () async {
-                                    String p =
-                                        await drive.downloadGoogleDriveFile(
-                                            snapchat.data.files[index].name,
-                                            snapchat.data.files[index].id);
-                                    print(p + "ggg");
+                                    String p = await drive.downloadGoogleDriveFile(
+                                        snapchat.data.files[index].name, snapchat.data.files[index].id);
+                                    //print("$p + ggg");
                                     File file = File(p);
-                                    print(file.exists());
-                                    String data =
-                                        await File(file.path).readAsString();
-                                    print(data);
+                                    //print(file.exists());
+                                    String data = await File(file.path).readAsString();
+                                    //print(data);
                                   },
-                                  child: Text(snapchat.data.files[index].name));
+                                  child: Container(
+                                      padding: EdgeInsets.all(8), child: Text(snapchat.data.files[index].name)));
                             },
                             itemCount: snapchat.data.files.length);
                       },
