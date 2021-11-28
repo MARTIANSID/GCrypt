@@ -73,7 +73,7 @@ class GoogleDrive {
   }
 
   Future<String> downloadGoogleDriveFile(
-      String fName, String gdID, BuildContext context) async {
+      String fName, String gdID, BuildContext context, String givingKey) async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
     ga.Media file = await drive.files
@@ -89,7 +89,7 @@ class GoogleDrive {
       dataStore.insertAll(dataStore.length, data);
     }, onDone: () async {
       print("Task Done");
-      var crypt = AesCrypt("SexyBitch@99");
+      var crypt = AesCrypt("$givingKey");
       File f = await saveFile.writeAsBytes(dataStore);
       Uint8List g = await crypt.decryptDataFromFile(saveFile.path);
       print(new String.fromCharCodes(g));

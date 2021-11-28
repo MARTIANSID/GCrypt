@@ -37,7 +37,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final drive = GoogleDrive();
   var secretKey = '';
+  var givingKey = '';
   TextEditingController controller = TextEditingController();
+  TextEditingController givingController = TextEditingController();
 
   Future<void> _handleRefresh() async {
     //await Future.delayed(Duration(milliseconds: 1000));
@@ -144,11 +146,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void getLoadingBar(name, id, context) async {
-    getSnackBar();
-    String p = await drive.downloadGoogleDriveFile(name, id, context);
-  }
-
-  void getBottomSheet(keys) {
     Get.bottomSheet(Container(
       height: 300,
       color: Colors.white,
@@ -158,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Container(
-              child: Text('Enter your one time secret key',
+              child: Text('Enter the key to see the magic',
                   style: TextStyle(fontSize: 20)),
             ),
             SizedBox(
@@ -176,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   borderRadius: BorderRadius.all(Radius.circular(10))),
               child: TextField(
                 maxLength: 20,
-                controller: controller,
+                controller: givingController,
                 decoration:
                     InputDecoration(border: InputBorder.none, counterText: ''),
               ),
@@ -195,21 +192,21 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               child: GestureDetector(
                 child: Text(
-                  'Save',
+                  'Open',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                   ),
                 ),
-                onTap: () {
+                onTap: () async {
                   setState(() {
-                    secretKey = controller.text;
-                    keys.setBool('keyStored', true);
-                    keys.setString('theKey', controller.text);
+                    givingKey = givingController.text;
                   });
+                  getSnackBar();
+                  String p = await drive.downloadGoogleDriveFile(
+                      name, id, context, givingKey);
 
-                  getTheFile(keys);
                   Navigator.of(context).pop();
                 },
               ),
@@ -222,6 +219,87 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     ));
+
+    // getSnackBar();
+    // String p = await drive.downloadGoogleDriveFile(name, id, context);
+  }
+
+  void getBottomSheet(keys) {
+    Get.bottomSheet(
+      Container(
+        height: 300,
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                child: Text('Enter your one time secret key',
+                    style: TextStyle(fontSize: 20)),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                width: 280,
+                padding: EdgeInsets.only(left: 5, right: 5),
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.blue,
+                      style: BorderStyle.solid,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+                child: TextField(
+                  maxLength: 20,
+                  controller: controller,
+                  decoration: InputDecoration(
+                      border: InputBorder.none, counterText: ''),
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                width: 100,
+                padding: EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10),
+                  ),
+                  color: Colors.blue,
+                ),
+                child: GestureDetector(
+                  child: Text(
+                    'Save',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      secretKey = controller.text;
+                      keys.setBool('keyStored', true);
+                      keys.setString('theKey', controller.text);
+                    });
+
+                    getTheFile(keys);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+              // ElevatedButton(
+              //   child: const Text('Close BottomSheet'),
+              //   onPressed: () => Navigator.pop(context),
+              // )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void getTheFile(keys) async {
