@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 
 class ContentShow extends StatelessWidget {
   final String content;
-  ContentShow(this.content);
+  final String fname;
+  ContentShow(this.content, this.fname);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Scaffold(
-        body: Center(
+        appBar: AppBar(
+          title: Text('$fname'),
+        ),
+        body: Container(
+          padding: const EdgeInsets.all(20),
           child: Text("$content"),
         ),
       ),

@@ -96,7 +96,7 @@ class GoogleDrive {
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => ContentShow(String.fromCharCodes(g))),
+            builder: (context) => ContentShow(String.fromCharCodes(g), fName)),
       );
       return saveFile.path;
     }, onError: (error) {
