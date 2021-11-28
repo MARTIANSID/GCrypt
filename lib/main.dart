@@ -7,6 +7,8 @@ import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:aes_crypt/aes_crypt.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'content_show.dart';
 
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Drive',
       theme: ThemeData(
@@ -34,6 +36,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final drive = GoogleDrive();
+  var secretKey = '';
+  TextEditingController controller = TextEditingController();
 
   Future<void> _handleRefresh() async {
     //await Future.delayed(Duration(milliseconds: 1000));
@@ -144,6 +148,113 @@ class _MyHomePageState extends State<MyHomePage> {
     String p = await drive.downloadGoogleDriveFile(name, id, context);
   }
 
+  void getBottomSheet(keys) {
+    Get.bottomSheet(Container(
+      height: 300,
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              child: Text('Enter your one time secret key',
+                  style: TextStyle(fontSize: 20)),
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            Container(
+              width: 280,
+              padding: EdgeInsets.only(left: 5, right: 5),
+              decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.blue,
+                    style: BorderStyle.solid,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              child: TextField(
+                maxLength: 20,
+                controller: controller,
+                decoration:
+                    InputDecoration(border: InputBorder.none, counterText: ''),
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            ),
+            Container(
+              width: 100,
+              padding: EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(10),
+                ),
+                color: Colors.blue,
+              ),
+              child: GestureDetector(
+                child: Text(
+                  'Save',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    secretKey = controller.text;
+                    keys.setBool('keyStored', true);
+                    keys.setString('theKey', controller.text);
+                  });
+
+                  getTheFile(keys);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+            // ElevatedButton(
+            //   child: const Text('Close BottomSheet'),
+            //   onPressed: () => Navigator.pop(context),
+            // )
+          ],
+        ),
+      ),
+    ));
+  }
+
+  void getTheFile(keys) async {
+    Directory tempDir = await getApplicationSupportDirectory();
+    print("Dir Check -> ${tempDir.path}");
+    var file = await FilePicker.getFile();
+    String path = file.path;
+    String fileName = path.substring(path.lastIndexOf('/'));
+    print("Choot Name -> $fileName");
+
+    String data = await File(file.path).readAsString();
+    setState(() {
+      secretKey = keys.getString('theKey') ?? 'heyman';
+    });
+    var crypt = AesCrypt("$secretKey");
+
+    // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
+    String encrypted =
+        await crypt.encryptTextToFile(data, '${tempDir.path}/$fileName.aes');
+    //String encrypted = await crypt.encryptTextToFile(data, '${tempDir.path}/rm.aes');
+    File encFile = File(encrypted);
+
+    Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
+
+    String s = String.fromCharCodes(dec);
+    print("choot dec text $s");
+
+    // String encText = await encFile.readAsString();
+    // print("data -> $encText");
+    print("check file path $encrypted");
+    await drive.upload(File(encFile.path));
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -155,188 +266,215 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          Directory tempDir = await getApplicationSupportDirectory();
-          print("Dir Check -> ${tempDir.path}");
-          var file = await FilePicker.getFile();
-          String path = file.path;
-          String fileName = path.substring(path.lastIndexOf('/'));
-          print("Choot Name -> $fileName");
+          SharedPreferences keys = await SharedPreferences.getInstance();
+          bool secret = keys.getBool('keyStored') ?? false;
+          if (secret == false) {
+            getBottomSheet(keys);
+          } else {
+            getTheFile(keys);
+            // Directory tempDir = await getApplicationSupportDirectory();
+            // print("Dir Check -> ${tempDir.path}");
+            // var file = await FilePicker.getFile();
+            // String path = file.path;
+            // String fileName = path.substring(path.lastIndexOf('/'));
+            // print("Choot Name -> $fileName");
 
-          String data = await File(file.path).readAsString();
-          var crypt = AesCrypt("SexyBitch@99");
+            // String data = await File(file.path).readAsString();
+            // var crypt = AesCrypt("$secretKey");
 
-          // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
-          String encrypted = await crypt.encryptTextToFile(
-              data, '${tempDir.path}/$fileName.aes');
-          //String encrypted = await crypt.encryptTextToFile(data, '${tempDir.path}/rm.aes');
-          File encFile = File(encrypted);
+            // // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
+            // String encrypted = await crypt.encryptTextToFile(
+            //     data, '${tempDir.path}/$fileName.aes');
+            // //String encrypted = await crypt.encryptTextToFile(data, '${tempDir.path}/rm.aes');
+            // File encFile = File(encrypted);
 
-          Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
+            // Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
 
-          String s = String.fromCharCodes(dec);
-          print("choot dec text $s");
+            // String s = String.fromCharCodes(dec);
+            // print("choot dec text $s");
 
-          // String encText = await encFile.readAsString();
-          // print("data -> $encText");
-          print("check file path $encrypted");
-          await drive.upload(File(encFile.path));
+            // // String encText = await encFile.readAsString();
+            // // print("data -> $encText");
+            // print("check file path $encrypted");
+            // await drive.upload(File(encFile.path));
+          }
         },
         child: Icon(Icons.add),
       ),
       appBar: AppBar(
         title: Text("Flutter Drive Demo"),
       ),
-      body: Center(
-        child: LiquidPullToRefresh(
-          onRefresh: _handleRefresh,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FutureBuilder(
-                builder: (BuildContext ctx,
-                    AsyncSnapshot<Stream<ga.FileList>> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return Expanded(
-                      child: StreamBuilder(
-                        stream: snapshot.data,
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          child: SingleChildScrollView(
+            child: Center(
+              child: LiquidPullToRefresh(
+                onRefresh: _handleRefresh,
+                child: Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      FutureBuilder(
                         builder: (BuildContext ctx,
-                            AsyncSnapshot<ga.FileList> snapchat) {
-                          if (!snapchat.hasData)
-                            return Center(child: CircularProgressIndicator());
-                          return Container(
-                            padding: const EdgeInsets.only(
-                                top: 20, left: 20, right: 20),
-                            child: GridView.builder(
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 2.5 / 3,
-                                  crossAxisSpacing: 5,
-                                  mainAxisSpacing: 5,
-                                ),
-                                itemBuilder: (BuildContext ctx, index) {
+                            AsyncSnapshot<Stream<ga.FileList>> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            return Expanded(
+                              child: StreamBuilder(
+                                stream: snapshot.data,
+                                builder: (BuildContext ctx,
+                                    AsyncSnapshot<ga.FileList> snapchat) {
+                                  if (!snapchat.hasData)
+                                    return Center(
+                                        child: CircularProgressIndicator());
                                   return Container(
-                                      //padding: EdgeInsets.all(16),
-                                      margin: EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.blue.withOpacity(0.3),
-                                          style: BorderStyle.solid,
-                                          width: 2,
+                                    padding: const EdgeInsets.only(
+                                        top: 20, left: 20, right: 20),
+                                    child: GridView.builder(
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          childAspectRatio: 2.5 / 3,
+                                          crossAxisSpacing: 5,
+                                          mainAxisSpacing: 5,
                                         ),
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          getLoadingBar(
-                                              snapchat.data.files[index].name,
-                                              snapchat.data.files[index].id,
-                                              context);
-                                          // String p = await drive
-                                          //     .downloadGoogleDriveFile(
-                                          //         snapchat
-                                          //             .data.files[index].name,
-                                          //         snapchat.data.files[index].id,
-                                          //         context);
-                                          //print("$p + ggg");
-                                          // File file = File(p);
-                                          // //print(file.exists());
-                                          // String data = await File(file.path)
-                                          //     .readAsString();
-                                          // print("Taking to next screen");
-                                          // print(data);
-
-                                          //take to second page to show the content
-
-                                          // Navigator.push(
-                                          //     context,
-                                          //     MaterialPageRoute(
-                                          //         builder: (context) =>
-                                          //             ContentShow(data)));
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                right: 10.0,
-                                                top: 60,
-                                                bottom: 45,
-                                              ),
-                                              child: Container(
-                                                height: 50,
-                                                child: Center(
-                                                  child: Image.asset(
-                                                    'assets/file.png',
-                                                    fit: BoxFit.contain,
-                                                  ),
+                                        itemBuilder: (BuildContext ctx, index) {
+                                          return Container(
+                                              //padding: EdgeInsets.all(16),
+                                              margin: EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.blue
+                                                      .withOpacity(0.3),
+                                                  style: BorderStyle.solid,
+                                                  width: 2,
                                                 ),
                                               ),
-                                            ),
-                                            Row(
-                                              children: [
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Container(
-                                                  height: 20,
-                                                  child: Image.asset(
-                                                    'assets/file.png',
-                                                    fit: BoxFit.contain,
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Container(
-                                                  //padding: EdgeInsets.all(16),
-                                                  child: Text(
+                                              child: GestureDetector(
+                                                onTap: () async {
+                                                  getLoadingBar(
                                                       snapchat.data.files[index]
                                                           .name,
-                                                      style: TextStyle(
-                                                          fontSize: 13)),
+                                                      snapchat
+                                                          .data.files[index].id,
+                                                      context);
+                                                  // String p = await drive
+                                                  //     .downloadGoogleDriveFile(
+                                                  //         snapchat
+                                                  //             .data.files[index].name,
+                                                  //         snapchat.data.files[index].id,
+                                                  //         context);
+                                                  //print("$p + ggg");
+                                                  // File file = File(p);
+                                                  // //print(file.exists());
+                                                  // String data = await File(file.path)
+                                                  //     .readAsString();
+                                                  // print("Taking to next screen");
+                                                  // print(data);
+
+                                                  //take to second page to show the content
+
+                                                  // Navigator.push(
+                                                  //     context,
+                                                  //     MaterialPageRoute(
+                                                  //         builder: (context) =>
+                                                  //             ContentShow(data)));
+                                                },
+                                                child: Column(
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        left: 10.0,
+                                                        right: 10.0,
+                                                        top: 60,
+                                                        bottom: 45,
+                                                      ),
+                                                      child: Container(
+                                                        height: 50,
+                                                        child: Center(
+                                                          child: Image.asset(
+                                                            'assets/file.png',
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Row(
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 10,
+                                                        ),
+                                                        Container(
+                                                          height: 20,
+                                                          child: Image.asset(
+                                                            'assets/file.png',
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: 5,
+                                                        ),
+                                                        Container(
+                                                          //padding: EdgeInsets.all(16),
+                                                          child: Text(
+                                                              snapchat
+                                                                  .data
+                                                                  .files[index]
+                                                                  .name,
+                                                              style: TextStyle(
+                                                                  fontSize:
+                                                                      13)),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    // Row(
+                                                    //   children: [
+                                                    //     Container(
+                                                    //       child: Text(
+                                                    //         '${snapchat.data.files[index].}',
+                                                    //         style:
+                                                    //             TextStyle(fontSize: 10),
+                                                    //       ),
+                                                    //     )
+                                                    //   ],
+                                                    // )
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                            // Row(
-                                            //   children: [
-                                            //     Container(
-                                            //       child: Text(
-                                            //         '${snapchat.data.files[index].}',
-                                            //         style:
-                                            //             TextStyle(fontSize: 10),
-                                            //       ),
-                                            //     )
-                                            //   ],
-                                            // )
-                                          ],
-                                        ),
-                                      ));
+                                              ));
+                                        },
+                                        itemCount: snapchat.data.files.length),
+                                  );
                                 },
-                                itemCount: snapchat.data.files.length),
-                          );
+                              ),
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
                         },
+                        future: drive.listGoogleDriveFiles(),
                       ),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
-                future: drive.listGoogleDriveFiles(),
+                      // TextButton(
+                      //   child: Text('refresh'),
+                      //   onPressed: () {
+                      //     setState(() {
+                      //       // future: drive.listGoogleDriveFiles();
+                      //     });
+                      //   },
+                      // ),
+                      // TextButton(
+                      //     onPressed: () {
+                      //       setState(() {});
+                      //     },
+                      //     child: Text("Refresh"))
+                    ],
+                  ),
+                ),
               ),
-              // TextButton(
-              //   child: Text('refresh'),
-              //   onPressed: () {
-              //     setState(() {
-              //       // future: drive.listGoogleDriveFiles();
-              //     });
-              //   },
-              // ),
-              // TextButton(
-              //     onPressed: () {
-              //       setState(() {});
-              //     },
-              //     child: Text("Refresh"))
-            ],
+            ),
           ),
         ),
       ),
