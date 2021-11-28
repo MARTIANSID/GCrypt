@@ -2,6 +2,8 @@
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:aes_crypt/aes_crypt.dart';
+import 'package:flutter/material.dart';
+import 'package:flutterdrive/content_show.dart';
 import 'package:flutterdrive/secureStorage.dart';
 // import 'package:googleapis/drive/v2.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
@@ -70,7 +72,8 @@ class GoogleDrive {
     // });
   }
 
-  Future<String> downloadGoogleDriveFile(String fName, String gdID) async {
+  Future<String> downloadGoogleDriveFile(
+      String fName, String gdID, BuildContext context) async {
     var client = await getHttpClient();
     var drive = ga.DriveApi(client);
     ga.Media file = await drive.files
@@ -90,6 +93,11 @@ class GoogleDrive {
       File f = await saveFile.writeAsBytes(dataStore);
       Uint8List g = await crypt.decryptDataFromFile(saveFile.path);
       print(new String.fromCharCodes(g));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ContentShow(String.fromCharCodes(g))),
+      );
       return saveFile.path;
     }, onError: (error) {
       print("Some Error");

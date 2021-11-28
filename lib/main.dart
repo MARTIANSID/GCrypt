@@ -8,6 +8,8 @@ import 'package:aes_crypt/aes_crypt.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
+import 'content_show.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -62,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // crypt.encryptTextToFile(srcString, destFilePath)(srcFilePath)
           String encrypted = await crypt.encryptTextToFile(
               data, '${tempDir.path}/$fileName.aes');
+          //String encrypted = await crypt.encryptTextToFile(data, '${tempDir.path}/rm.aes');
           File encFile = File(encrypted);
 
           Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
@@ -82,7 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: LiquidPullToRefresh(
           onRefresh: _handleRefresh,
-          height: 125,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -106,13 +108,23 @@ class _MyHomePageState extends State<MyHomePage> {
                                         String p =
                                             await drive.downloadGoogleDriveFile(
                                                 snapchat.data.files[index].name,
-                                                snapchat.data.files[index].id);
+                                                snapchat.data.files[index].id,
+                                                context);
                                         //print("$p + ggg");
-                                        File file = File(p);
-                                        //print(file.exists());
-                                        String data = await File(file.path)
-                                            .readAsString();
-                                        //print(data);
+                                        // File file = File(p);
+                                        // //print(file.exists());
+                                        // String data = await File(file.path)
+                                        //     .readAsString();
+                                        // print("Taking to next screen");
+                                        // print(data);
+
+                                        //take to second page to show the content
+
+                                        // Navigator.push(
+                                        //     context,
+                                        //     MaterialPageRoute(
+                                        //         builder: (context) =>
+                                        //             ContentShow(data)));
                                       },
                                       child: Container(
                                         padding: EdgeInsets.all(16),
@@ -132,6 +144,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 future: drive.listGoogleDriveFiles(),
               ),
+              // TextButton(
+              //   child: Text('refresh'),
+              //   onPressed: () {
+              //     setState(() {
+              //       // future: drive.listGoogleDriveFiles();
+              //     });
+              //   },
+              // ),
               // TextButton(
               //     onPressed: () {
               //       setState(() {});
