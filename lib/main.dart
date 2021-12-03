@@ -306,9 +306,10 @@ class _MyHomePageState extends State<MyHomePage> {
     Directory tempDir = await getApplicationSupportDirectory();
     print("Dir Check -> ${tempDir.path}");
     var file = await FilePicker.getFile();
+    //var file = await FilePicker.platform.pickFiles();
     String path = file.path;
     String fileName = path.substring(path.lastIndexOf('/'));
-    print("Choot Name -> $fileName");
+    print("Name -> $fileName");
 
     String data = await File(file.path).readAsString();
     setState(() {
@@ -325,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
 
     String s = String.fromCharCodes(dec);
-    print("choot dec text $s");
+    print("text $s");
 
     // String encText = await encFile.readAsString();
     // print("data -> $encText");
@@ -355,7 +356,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // var file = await FilePicker.getFile();
             // String path = file.path;
             // String fileName = path.substring(path.lastIndexOf('/'));
-            // print("Choot Name -> $fileName");
+            // print(" $fileName");
 
             // String data = await File(file.path).readAsString();
             // var crypt = AesCrypt("$secretKey");
@@ -369,7 +370,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // Uint8List dec = await crypt.decryptDataFromFile(encFile.path);
 
             // String s = String.fromCharCodes(dec);
-            // print("choot dec text $s");
+            // print("text $s");
 
             // // String encText = await encFile.readAsString();
             // // print("data -> $encText");

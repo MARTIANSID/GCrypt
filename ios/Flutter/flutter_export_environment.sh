@@ -1,12 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-<<<<<<< HEAD
 export "FLUTTER_ROOT=D:\Development\flutter"
 export "FLUTTER_APPLICATION_PATH=D:\Projects\GCrypt"
-=======
-export "FLUTTER_ROOT=D:\src\flutter"
-export "FLUTTER_APPLICATION_PATH=D:\Flutter Projects\GCrypt"
->>>>>>> cb7e703fea7c58a77cda3eccbef18d2b54fe4a5b
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
